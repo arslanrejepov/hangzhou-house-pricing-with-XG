@@ -1,6 +1,6 @@
-// nav.js — shared hamburger drawer logic
+// nav.js — shared hamburger drawer + active nav link logic
 (function () {
-  const menuBtn = document.getElementById('menuBtn');
+  const menuBtn  = document.getElementById('menuBtn');
   const backdrop = document.getElementById('drawerBackdrop');
   const drawer   = document.getElementById('drawer');
   const closeBtn = document.getElementById('drawerClose');
@@ -20,10 +20,9 @@
   if (backdrop) backdrop.addEventListener('click', closeDrawer);
   if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
 
-  // Mark active drawer link based on current page
-  const links = document.querySelectorAll('.drawer a[data-page]');
-  const page  = location.pathname.split('/').pop() || 'index.html';
-  links.forEach(a => {
+  // Mark active nav center + drawer link
+  const page = location.pathname.split('/').pop() || 'forecast.html';
+  document.querySelectorAll('[data-page]').forEach(a => {
     if (a.dataset.page === page) a.classList.add('active');
   });
 })();
