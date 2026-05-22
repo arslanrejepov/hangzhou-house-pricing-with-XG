@@ -6,102 +6,143 @@
   <title>Hangzhou — Price Forecast</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* ── Page layout ─────────────────────────────────── */
-    .forecast-page {
-      max-width: 1200px;
-      margin: 0 auto;
+    /* ── Hero ─────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      width: 100%;
+      height: 56vh;
+      min-height: 340px;
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+    }
+    .hero-img {
+      position: absolute; inset: 0;
+      /* ↓ Replace with your West Lake photo URL */
+      background: url('assets/bg/westlake.jpg') center/cover no-repeat;
+      background-color: #b8d4ea; /* fallback sky color if image missing */
+    }
+    /* Gradient overlay — transparent top, frosted bottom */
+    .hero-img::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(240,246,252,0) 0%,
+        rgba(240,246,252,0.15) 50%,
+        rgba(240,246,252,0.82) 100%
+      );
     }
 
-    /* Top row: result box right */
-    .top-row {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 24px;
+    /* Price Forecast Result card — top right */
+    .price-result {
+      position: absolute;
+      top: 32px; right: 48px;
+      background: rgba(255,255,255,0.82);
+      backdrop-filter: blur(24px) saturate(1.5);
+      -webkit-backdrop-filter: blur(24px) saturate(1.5);
+      border: 1.5px solid rgba(255,255,255,0.9);
+      border-radius: 20px;
+      padding: 24px 36px;
+      text-align: center;
+      box-shadow: 0 12px 48px rgba(13,45,82,0.16);
+      min-width: 260px;
+      z-index: 10;
+      transition: transform var(--spring), box-shadow var(--spring);
     }
-    .result-box {
-      padding: 24px 40px;
-      text-align: right;
-      min-width: 320px;
-    }
-    .result-label {
-      font-size: 13px; font-weight: 600;
+    .price-result:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(13,45,82,0.22); }
+    .price-label {
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 11px; font-weight: 700;
       color: var(--muted); text-transform: uppercase;
-      letter-spacing: 0.08em; margin-bottom: 6px;
+      letter-spacing: 0.12em; margin-bottom: 8px;
     }
-    .result-price {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(36px, 5vw, 56px);
-      font-weight: 700;
+    .price-value {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 42px; font-weight: 700;
       color: var(--accent);
+      letter-spacing: -0.02em;
       line-height: 1;
     }
-    .result-price .currency { font-size: 0.65em; vertical-align: middle; }
+    .price-value .currency {
+      font-size: 26px; font-weight: 400;
+      vertical-align: top; margin-top: 6px;
+      display: inline-block;
+    }
+    .price-change {
+      margin-top: 8px;
+      font-size: 12px; font-weight: 600;
+      color: #2a9d5c;
+    }
 
-    /* District bar — slim, same width as cards below */
+    /* ── District bar ──────────────────────────────────── */
+    .content-section {
+      position: relative; z-index: 5;
+      padding: 0 48px 48px;
+      background: var(--bg);
+    }
+
     .district-bar {
-      display: flex; gap: 8px; flex-wrap: wrap;
-      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 8px;
+      padding: 20px 0 24px;
+      flex-wrap: wrap;
     }
     .district-pill {
-      padding: 6px 16px;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 18px;
       border-radius: 50px;
-      border: 1.5px solid rgba(26,63,111,0.2);
-      background: rgba(255,255,255,0.45);
-      backdrop-filter: blur(10px);
+      border: 1.5px solid rgba(13,45,82,0.15);
+      background: rgba(255,255,255,0.55);
       color: var(--muted);
-      font-size: 12px; font-weight: 500;
-      cursor: pointer;
-      user-select: none;
-      transition: background var(--ease), color var(--ease), border-color var(--ease), transform var(--spring), box-shadow var(--spring);
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; user-select: none;
+      backdrop-filter: blur(8px);
+      transition: all var(--ease), transform var(--spring);
     }
-    .district-pill .zh { font-size: 10px; color: inherit; margin-left: 4px; opacity: 0.7; }
+    .district-pill .cn { font-size: 12px; opacity: 0.7; }
     .district-pill.active {
       background: var(--accent); color: #fff;
       border-color: var(--accent);
-      box-shadow: 0 4px 14px rgba(26,63,111,0.22);
+      box-shadow: 0 4px 18px rgba(13,45,82,0.25);
+    }
+    .district-pill:hover:not(.active) {
+      background: rgba(13,45,82,0.07); color: var(--accent); transform: scale(1.05);
     }
 
-    /* 3 filter cards */
-    .filter-grid {
+    /* ── 3 filter cards grid ───────────────────────────── */
+    .filters-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
+      gap: 22px;
+      margin-bottom: 32px;
     }
 
     .filter-card {
-      padding: 26px 22px;
+      padding: 26px 24px;
       display: flex; flex-direction: column; gap: 20px;
-      position: relative;
+      position: relative; overflow: hidden;
     }
     .filter-card h2 {
-      font-size: 18px; margin-bottom: 0;
-      display: flex; align-items: center; gap: 10px;
+      font-size: 17px;
+      display: flex; align-items: center; gap: 9px;
     }
-    .filter-card h2 svg { color: var(--muted); flex-shrink: 0; }
+    .filter-card h2 svg { color: var(--accent2); flex-shrink: 0; }
 
-    .filter-field { display: flex; flex-direction: column; gap: 8px; }
-    .filter-row-label {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 13px; font-weight: 500; color: var(--text);
+    .filter-group { display: flex; flex-direction: column; gap: 8px; }
+    .pill-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* ── CTA ───────────────────────────────────────────── */
+    .cta-center {
+      display: flex; justify-content: center; margin-top: 4px;
     }
-    .filter-row-label svg { color: var(--muted); }
-
-    .pill-group { display: flex; gap: 6px; flex-wrap: wrap; }
-
-    .elevator-row {
-      display: flex; align-items: center; justify-content: space-between;
+    .cta-center .btn-primary {
+      padding: 16px 52px; font-size: 16px;
+      letter-spacing: 0.05em;
     }
-
-    /* Bottom CTA */
-    .cta-bottom {
-      margin-top: 28px; text-align: center;
-    }
-    .cta-bottom .btn-primary { min-width: 320px; }
   </style>
 </head>
 <body>
-
-<div class="page-bg"></div>
 
 <!-- NAV -->
 <nav>
@@ -119,7 +160,11 @@
     </svg>
     <span>Hangzhou</span>
   </a>
-  <div class="nav-center"></div>
+  <div class="nav-center">
+    <a href="forecast.html" data-page="forecast.html">Price Forecast</a>
+    <a href="index.html"    data-page="index.html">Dashboard</a>
+    <a href="contact.html"  data-page="contact.html">Contact Us</a>
+  </div>
   <div class="nav-right">
     <a href="index.html" class="nav-icon-btn" title="Profile">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -138,275 +183,254 @@
 <div class="drawer-backdrop" id="drawerBackdrop"></div>
 <div class="drawer" id="drawer">
   <button class="drawer-close" id="drawerClose">✕</button>
-  <a href="forecast.html" data-page="forecast.html">🏠 Home</a>
-  <a href="contact.html" data-page="contact.html">✉️ Contact Us</a>
+  <a href="forecast.html" data-page="forecast.html">🏠 Price Forecast</a>
+  <a href="index.html"    data-page="index.html">👤 Dashboard</a>
+  <a href="contact.html"  data-page="contact.html">✉️ Contact Us</a>
 </div>
 
 <!-- PAGE -->
-<main class="page">
-  <div class="forecast-page">
+<div class="page">
 
-    <!-- Price result top-right -->
-    <div class="top-row">
-      <div class="card result-box">
-        <div class="result-label">Price Forecast Result</div>
-        <div class="result-price" id="priceDisplay">
-          <span class="currency">¥</span> <span id="priceVal">3,850,000</span>
-        </div>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-img"></div>
+
+    <!-- Price Result -->
+    <div class="price-result">
+      <div class="price-label">Price Forecast Result</div>
+      <div class="price-value">
+        <span class="currency">¥</span><span id="priceDisplay">3,850,000</span>
       </div>
+      <div class="price-change">↑ Est. +4.2% YoY</div>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <section class="content-section">
+
+    <!-- District Bar -->
+    <div class="district-bar">
+      <div class="district-pill active" onclick="selectDistrict(this)">Xihu <span class="cn">西湖</span></div>
+      <div class="district-pill" onclick="selectDistrict(this)">Gongshu <span class="cn">拱墅</span></div>
+      <div class="district-pill" onclick="selectDistrict(this)">Shangcheng <span class="cn">上城</span></div>
+      <div class="district-pill" onclick="selectDistrict(this)">Binjiang <span class="cn">滨江</span></div>
+      <div class="district-pill" onclick="selectDistrict(this)">Xiaoshan <span class="cn">萧山</span></div>
+      <div class="district-pill" onclick="selectDistrict(this)">Yuhang <span class="cn">余杭</span></div>
     </div>
 
-    <!-- District bar -->
-    <div class="district-bar" id="districtBar">
-      <div class="district-pill active" onclick="selectDistrict(this)">Xihu <span class="zh">(西湖)</span></div>
-      <div class="district-pill" onclick="selectDistrict(this)">Gongshu <span class="zh">(拱墅)</span></div>
-      <div class="district-pill" onclick="selectDistrict(this)">Shangcheng <span class="zh">(上城)</span></div>
-      <div class="district-pill" onclick="selectDistrict(this)">Binjiang <span class="zh">(滨江)</span></div>
-      <div class="district-pill" onclick="selectDistrict(this)">Xiaoshan <span class="zh">(萧山)</span></div>
-      <div class="district-pill" onclick="selectDistrict(this)">Yuhang <span class="zh">(余杭)</span></div>
-    </div>
-
-    <!-- 3 Filter Cards -->
-    <div class="filter-grid">
+    <!-- Filter cards -->
+    <div class="filters-grid">
 
       <!-- Card 1: Area & Location -->
       <div class="card filter-card">
         <h2>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" opacity=".5"/></svg>
           Area &amp; Location
         </h2>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M12 6v12M6 12h12"/></svg>
-            Subway Line
-          </div>
-          <div class="pill-group" id="subwayLines">
-            <div class="pill-btn active" onclick="togglePill(this,'subwayLines')">Line 1</div>
-            <div class="pill-btn" onclick="togglePill(this,'subwayLines')">Line 2</div>
-            <div class="pill-btn" onclick="togglePill(this,'subwayLines')">Line 3</div>
+        <div class="filter-group">
+          <label class="field-label">Subway Line</label>
+          <div class="pill-group">
+            <button class="pill-btn active" onclick="togglePill(this)">Line 1</button>
+            <button class="pill-btn" onclick="togglePill(this)">Line 2</button>
+            <button class="pill-btn" onclick="togglePill(this)">Line 3</button>
           </div>
         </div>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg>
-            Subway Distance
-          </div>
-          <input type="range" min="100" max="3000" value="1200" id="subwaySlider" oninput="updatePrice()" />
+        <div class="filter-group">
+          <label class="field-label">Subway Distance</label>
+          <input type="range" min="0" max="3000" value="800" oninput="updatePrice()" />
         </div>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 10v6M2 10l10-7 10 7"/><path d="M6 10v8h12v-8"/></svg>
-            School Distance
-          </div>
+        <div class="filter-group">
+          <label class="field-label">School Distance</label>
           <select onchange="updatePrice()">
             <option>Distance-band</option>
-            <option>30 years</option>
-            <option>10 years</option>
-            <option>&lt;5 min walk</option>
+            <option>Within 500m</option>
+            <option>500m – 1km</option>
+            <option>1km – 2km</option>
+            <option>Over 2km</option>
           </select>
         </div>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-            Neighborhood Amenities
-          </div>
+        <div class="filter-group">
+          <label class="field-label">Neighborhood Amenities</label>
           <select onchange="updatePrice()">
-            <option>Proximity to parks, Hospitals, Shopping</option>
-            <option>Parks only</option>
-            <option>Hospitals only</option>
-            <option>All amenities</option>
+            <option>Proximity to parks, hospitals, shopping</option>
+            <option>Parks nearby</option>
+            <option>Hospital nearby</option>
+            <option>Shopping nearby</option>
           </select>
         </div>
+
+        <svg class="deco-stamp" viewBox="0 0 80 80" fill="none">
+          <rect x="36" y="0" width="7" height="80" rx="3" fill="#0d2d52"/>
+          <rect x="36" y="20" width="7" height="3" rx="1" fill="#fff"/>
+          <rect x="36" y="45" width="7" height="3" rx="1" fill="#fff"/>
+          <path d="M43 25 Q62 14 60 5" stroke="#0d2d52" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M36 50 Q16 39 18 30" stroke="#0d2d52" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        </svg>
       </div>
 
       <!-- Card 2: House Details -->
       <div class="card filter-card">
         <h2>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           House Details
         </h2>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 21h18M6 21V7l6-4 6 4v14"/></svg>
-            Floor
-          </div>
-          <div class="pill-group" id="floorGroup">
-            <div class="pill-btn" onclick="togglePill(this,'floorGroup')">Low</div>
-            <div class="pill-btn active" onclick="togglePill(this,'floorGroup')">Medium</div>
-            <div class="pill-btn" onclick="togglePill(this,'floorGroup')">High</div>
+        <div class="filter-group">
+          <label class="field-label">Floor</label>
+          <div class="pill-group">
+            <button class="pill-btn" onclick="togglePill(this)">Low</button>
+            <button class="pill-btn active" onclick="togglePill(this)">Medium</button>
+            <button class="pill-btn" onclick="togglePill(this)">High</button>
           </div>
         </div>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg>
-            Age
-          </div>
-          <div class="pill-group" id="ageGroup">
-            <div class="pill-btn active" onclick="togglePill(this,'ageGroup')">New</div>
-            <div class="pill-btn" onclick="togglePill(this,'ageGroup')">&lt;10 years</div>
-            <div class="pill-btn" onclick="togglePill(this,'ageGroup')">10-20 years</div>
+        <div class="filter-group">
+          <label class="field-label">Age</label>
+          <div class="pill-group">
+            <button class="pill-btn active" onclick="togglePill(this)">New</button>
+            <button class="pill-btn" onclick="togglePill(this)">&lt;10 years</button>
+            <button class="pill-btn" onclick="togglePill(this)">10–20 years</button>
           </div>
         </div>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2l3 7h7l-6 4 2 7-6-4-6 4 2-7-6-4h7z"/></svg>
-            Decoration
-          </div>
-          <div class="pill-group" id="decoGroup">
-            <div class="pill-btn active" onclick="togglePill(this,'decoGroup')">Standard</div>
-            <div class="pill-btn" onclick="togglePill(this,'decoGroup')">Luxury</div>
-            <div class="pill-btn" onclick="togglePill(this,'decoGroup')">Simple</div>
+        <div class="filter-group">
+          <label class="field-label">Decoration</label>
+          <div class="pill-group">
+            <button class="pill-btn active" onclick="togglePill(this)">Standard</button>
+            <button class="pill-btn" onclick="togglePill(this)">Luxury</button>
+            <button class="pill-btn" onclick="togglePill(this)">Simple</button>
           </div>
         </div>
 
-        <div class="filter-field">
-          <div class="elevator-row">
-            <div class="filter-row-label">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M9 10l3-3 3 3M9 14l3 3 3-3"/></svg>
-              Has Elevator
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="elevatorToggle" onchange="updatePrice()" />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
+        <div class="filter-group">
+          <label class="field-label">Has Elevator</label>
+          <label class="toggle-switch">
+            <input type="checkbox" onchange="updatePrice()" />
+            <span class="toggle-slider"></span>
+          </label>
         </div>
       </div>
 
       <!-- Card 3: Property Specifics -->
       <div class="card filter-card">
         <h2>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-8h6v8"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
           Property Specifics
         </h2>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-            Property Type
-          </div>
-          <div class="pill-group" id="propTypeGroup">
-            <div class="pill-btn active" onclick="togglePill(this,'propTypeGroup')">Apartment</div>
-            <div class="pill-btn" onclick="togglePill(this,'propTypeGroup')">House</div>
-            <div class="pill-btn" onclick="togglePill(this,'propTypeGroup')">Villa</div>
+        <div class="filter-group">
+          <label class="field-label">Property Type</label>
+          <div class="pill-group">
+            <button class="pill-btn active" onclick="togglePill(this)">Apartment</button>
+            <button class="pill-btn" onclick="togglePill(this)">House</button>
+            <button class="pill-btn" onclick="togglePill(this)">Villa</button>
           </div>
         </div>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 11h20M2 11V7a2 2 0 012-2h16a2 2 0 012 2v4M2 11v4h20v-4M7 15v4M17 15v4"/></svg>
-            Room Type
-          </div>
-          <div class="pill-group" id="roomGroup">
-            <div class="pill-btn" onclick="togglePill(this,'roomGroup')">1-Bed</div>
-            <div class="pill-btn active" onclick="togglePill(this,'roomGroup')">2-Bed</div>
-            <div class="pill-btn" onclick="togglePill(this,'roomGroup')">3-Bed</div>
+        <div class="filter-group">
+          <label class="field-label">Room Type</label>
+          <div class="pill-group">
+            <button class="pill-btn" onclick="togglePill(this)">1-Bed</button>
+            <button class="pill-btn active" onclick="togglePill(this)">2-Bed</button>
+            <button class="pill-btn" onclick="togglePill(this)">3-Bed</button>
           </div>
         </div>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 12H2v7h20v-7h-2"/><path d="M6 12V5a6 6 0 0112 0v7"/></svg>
-            Bathrooms
-          </div>
-          <div class="pill-group" id="bathGroup">
-            <div class="pill-btn" onclick="togglePill(this,'bathGroup')">1</div>
-            <div class="pill-btn active" onclick="togglePill(this,'bathGroup')">2</div>
-            <div class="pill-btn" onclick="togglePill(this,'bathGroup')">3</div>
-            <div class="pill-btn" onclick="togglePill(this,'bathGroup')">etc</div>
+        <div class="filter-group">
+          <label class="field-label">Bathrooms</label>
+          <div class="pill-group">
+            <button class="pill-btn" onclick="togglePill(this)">1</button>
+            <button class="pill-btn active" onclick="togglePill(this)">2</button>
+            <button class="pill-btn" onclick="togglePill(this)">3</button>
+            <button class="pill-btn" onclick="togglePill(this)">etc</button>
           </div>
         </div>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="9" width="22" height="12" rx="2"/><path d="M7 9V5a3 3 0 016 0v4"/></svg>
-            Parking Rate
-          </div>
+        <div class="filter-group">
+          <label class="field-label">Parking Rate</label>
           <select onchange="updatePrice()">
             <option>Per Month &lt; Fee range</option>
-            <option>Per Month ¥800–1,200</option>
-            <option>Per Month ¥1,200–2,000</option>
-            <option>Included in price</option>
+            <option>Free</option>
+            <option>¥200–400 / month</option>
+            <option>¥400–600 / month</option>
+            <option>Over ¥600 / month</option>
           </select>
         </div>
+
+        <svg class="deco-stamp" viewBox="0 0 80 80" fill="none">
+          <path d="M40 5l5 10H35L40 5z" fill="#0d2d52"/>
+          <rect x="33" y="15" width="14" height="6" rx="2" fill="#0d2d52"/>
+          <path d="M28 21l4 8H24l4-8z" fill="#0d2d52"/>
+          <path d="M52 21l4 8h-8l4-8z" fill="#0d2d52"/>
+          <rect x="20" y="29" width="40" height="6" rx="2" fill="#0d2d52"/>
+          <rect x="8" y="45" width="64" height="6" rx="2" fill="#0d2d52"/>
+          <rect x="33" y="51" width="14" height="20" rx="2" fill="#0d2d52"/>
+        </svg>
       </div>
 
-    </div>
+    </div><!-- /filters-grid -->
 
     <!-- CTA -->
-    <div class="cta-bottom">
-      <a href="index.html" class="btn-primary">Find Matching Listings</a>
+    <div class="cta-center">
+      <a href="index.html" class="btn-primary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Find Matching Listings
+      </a>
     </div>
 
-  </div>
-</main>
+  </section>
+</div>
 
 <script src="nav.js"></script>
 <script>
-  /* ── District selector ──────────────────────────── */
-  function selectDistrict(el) {
+  function togglePill(btn) {
+    const group = btn.closest('.pill-group');
+    group.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    updatePrice();
+  }
+
+  function selectDistrict(pill) {
     document.querySelectorAll('.district-pill').forEach(p => p.classList.remove('active'));
-    el.classList.add('active');
+    pill.classList.add('active');
     updatePrice();
   }
 
-  /* ── Pill toggle (single-select per group) ───────── */
-  function togglePill(el, groupId) {
-    const group = document.getElementById(groupId);
-    if (group) {
-      group.querySelectorAll('.pill-btn').forEach(p => p.classList.remove('active'));
-    }
-    el.classList.add('active');
-    updatePrice();
-  }
+  const basePrices = {
+    'Xihu': 4200000, 'Gongshu': 3400000, 'Shangcheng': 3850000,
+    'Binjiang': 3600000, 'Xiaoshan': 2800000, 'Yuhang': 2600000
+  };
 
-  /* ── Simple price calculation (demo) ────────────── */
-  const BASE = 3850000;
   function updatePrice() {
-    let delta = 0;
+    const activePill = document.querySelector('.district-pill.active');
+    const districtKey = activePill ? activePill.textContent.trim().replace(/[\u4e00-\u9fa5]/g,'').trim() : 'Xihu';
+    let price = basePrices[districtKey] || 3850000;
 
-    // District factor
-    const districtEl = document.querySelector('.district-pill.active');
-    if (districtEl) {
-      const d = districtEl.textContent.trim();
-      const map = { Xihu: 0, Gongshu: -150000, Shangcheng: 80000, Binjiang: -50000, Xiaoshan: -200000, Yuhang: -180000 };
-      const key = Object.keys(map).find(k => d.startsWith(k));
-      if (key) delta += map[key];
+    // Room type modifier
+    const roomPill = document.querySelector('.filter-card:nth-child(3) .filter-group:nth-child(3) .pill-btn.active');
+    if (roomPill) {
+      if (roomPill.textContent.includes('1')) price *= 0.72;
+      if (roomPill.textContent.includes('3')) price *= 1.32;
     }
 
-    // Property type
-    const pt = document.querySelector('#propTypeGroup .pill-btn.active');
-    if (pt) {
-      if (pt.textContent === 'Villa')     delta += 2000000;
-      if (pt.textContent === 'House')     delta += 500000;
+    // Floor modifier
+    const floorPill = document.querySelector('.filter-card:nth-child(2) .filter-group:nth-child(2) .pill-btn.active');
+    if (floorPill) {
+      if (floorPill.textContent === 'High') price *= 1.08;
+      if (floorPill.textContent === 'Low') price *= 0.96;
     }
 
-    // Room type
-    const rt = document.querySelector('#roomGroup .pill-btn.active');
-    if (rt) {
-      if (rt.textContent === '1-Bed')  delta -= 400000;
-      if (rt.textContent === '3-Bed')  delta += 600000;
-    }
-
-    // Decoration
-    const dc = document.querySelector('#decoGroup .pill-btn.active');
-    if (dc) {
-      if (dc.textContent === 'Luxury')   delta += 300000;
-      if (dc.textContent === 'Simple')   delta -= 150000;
-    }
-
-    // Elevator
-    if (document.getElementById('elevatorToggle').checked) delta += 80000;
-
-    const price = Math.max(500000, BASE + delta);
-    document.getElementById('priceVal').textContent = price.toLocaleString();
+    document.getElementById('priceDisplay').textContent =
+      Math.round(price / 1000) * 1000 >= 1000000
+        ? (Math.round(price / 10000) / 100).toFixed(2).replace(/\.?0+$/, '') + ',000'
+        : Math.round(price).toLocaleString();
+    
+    document.getElementById('priceDisplay').textContent = 
+      Math.round(price).toLocaleString('en-US');
   }
 </script>
 </body>
