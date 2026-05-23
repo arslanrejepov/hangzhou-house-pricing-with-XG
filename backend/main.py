@@ -1,31 +1,52 @@
-# predict.py
-import pickle
-import numpy as np
+import logging
+from contextlib import asynccontextmanager
 
-class HousePriceModel:
-    def __init__(self, model_path: str = "model.pkl"):
-        try:
-            with open(model_path, "rb") as f:
-                self.model = pickle.load(f)
-            print("✓ Model loaded successfully.")
-        except FileNotFoundError:
-            self.model = None
-            print(f"✗ Error: {model_path} not found.")
+from fastapi import FastAPI, HTTPException
 
-    def predict(self, features) -> float:
-        if self.model is None:
-            raise RuntimeError("Model is not loaded.")
-        
-        # Convert schema attributes into a 2D array structure for the model
-        input_data = [[
-            features.square_meters,
-            features.bedrooms,
-            features.bathrooms,
-            features.year_built
-        ]]
-        
-        prediction = self.model.predict(input_data)
-        return float(prediction[0])
+from schemas import HouseInput, PredictionResponse
+from predict import HousePredictor, MODEL_VERSION
 
-# Initialize a single instance to be imported across the app
-model_runner = HousePriceModel()
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+)
+logger = logging.getLogger(__name__)
+
+predictor: HousePredictor
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global predictor
+    predictor = HousePredictor()
+    yield
+
+
+app = FastAPI(
+    title="Hangzhou AVM API",
+    description="Automated Valuation Model for Hangzhou real estate — powered by XGBoost.",
+    version=MODEL_VERSION,
+    lifespan=lifespan,
+)
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "model_version": MODEL_VERSION}
+
+
+@app.post("/predict", response_model=PredictionResponse)
+def predict(body: HouseInput):
+    try:
+        price, latency_ms = predictor.predict(body.model_dump())
+    except KeyError as e:
+        raise HTTPException(status_code=422, detail=f"Enrichment failed — unknown district: {e}")
+    except Exception as e:
+        logger.exception("Prediction error: %s", e)
+        raise HTTPException(status_code=500, detail="Inference failed.")
+
+    return PredictionResponse(
+        predicted_price_wan=price,
+        model_version=MODEL_VERSION,
+        latency_ms=round(latency_ms, 3),
+    )
