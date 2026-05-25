@@ -5,6 +5,7 @@ from fastapi import FastAPI, HTTPException
 
 from schemas import HouseInput, PredictionResponse
 from predict import HousePredictor, MODEL_VERSION
+from fastapi.middleware.cors import CORSMiddleware
 
 logging.basicConfig(
     level=logging.INFO,
@@ -27,6 +28,14 @@ app = FastAPI(
     description="Automated Valuation Model for Hangzhou real estate — powered by XGBoost.",
     version=MODEL_VERSION,
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # In production, change to your frontend's URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
