@@ -5,103 +5,318 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hangzhou — Price Forecast</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* ── Page layout ─────────────────────────────────── */
-    .forecast-page {
-      max-width: 1200px;
-      margin: 0 auto;
+    /* ── Override fonts for forecast page ─────────────── */
+    .forecast-page h1, .forecast-page h2, .forecast-page h3,
+    .price-value, .price-label {
+      font-family: 'DM Serif Display', serif;
+    }
+    .forecast-page, .forecast-page input, .forecast-page select,
+    .forecast-page button, .forecast-page textarea, .forecast-page label {
+      font-family: 'DM Sans', sans-serif;
     }
 
-    /* Top row: result box right */
-    .top-row {
+    /* ── Hero ─────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      width: 100%;
+      height: 52vh;
+      min-height: 320px;
+      overflow: hidden;
       display: flex;
-      justify-content: flex-end;
-      margin-bottom: 24px;
+      align-items: flex-end;
     }
-    .result-box {
-      padding: 24px 40px;
-      text-align: right;
-      min-width: 320px;
+    .hero-img {
+      position: absolute; inset: 0;
+      background: url('assets/bg/westlake.jpg') center/cover no-repeat;
+      background-color: #b8d4ea;
+      transform: scale(1.04);
+      animation: heroScale 1.2s cubic-bezier(0.22,1,0.36,1) forwards;
     }
-    .result-label {
-      font-size: 13px; font-weight: 600;
+    @keyframes heroScale {
+      from { transform: scale(1.1); }
+      to   { transform: scale(1.04); }
+    }
+    .hero-img::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(240,246,252,0) 0%,
+        rgba(240,246,252,0.12) 50%,
+        rgba(240,246,252,0.88) 100%
+      );
+    }
+
+    /* ── Price Result Card ───────────────────────────── */
+    .price-result {
+      position: absolute;
+      top: 28px; right: 48px;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(28px) saturate(1.6);
+      -webkit-backdrop-filter: blur(28px) saturate(1.6);
+      border: 1.5px solid rgba(255,255,255,0.92);
+      border-radius: 24px;
+      padding: 28px 40px;
+      text-align: center;
+      box-shadow: 0 16px 56px rgba(13,45,82,0.18);
+      min-width: 280px;
+      z-index: 10;
+      opacity: 0;
+      animation: slideDown 0.7s 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .price-result:hover { transform: translateY(-4px); box-shadow: 0 24px 64px rgba(13,45,82,0.24); transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+    .price-label {
+      font-size: 10px; font-weight: 600;
       color: var(--muted); text-transform: uppercase;
-      letter-spacing: 0.08em; margin-bottom: 6px;
+      letter-spacing: 0.15em; margin-bottom: 10px;
     }
-    .result-price {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: clamp(36px, 5vw, 56px);
-      font-weight: 700;
+    .price-value {
+      font-size: 46px; font-weight: 400;
       color: var(--accent);
+      letter-spacing: -0.02em;
       line-height: 1;
     }
-    .result-price .currency { font-size: 0.65em; vertical-align: middle; }
+    .price-value .currency {
+      font-size: 24px;
+      vertical-align: top; margin-top: 8px;
+      display: inline-block;
+    }
+    .price-change {
+      margin-top: 10px;
+      font-size: 12px; font-weight: 600;
+      color: #2a9d5c;
+      display: flex; align-items: center; justify-content: center; gap: 4px;
+    }
+    .price-per-sqm {
+      margin-top: 6px;
+      font-size: 11px; color: var(--muted);
+    }
+    .confidence-bar {
+      margin-top: 14px;
+      background: rgba(13,45,82,0.08);
+      border-radius: 4px; height: 4px; overflow: hidden;
+    }
+    .confidence-fill {
+      height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent3));
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.9s cubic-bezier(0.22,1,0.36,1);
+    }
+    .confidence-label {
+      font-size: 10px; color: var(--muted); margin-top: 5px;
+      text-align: right; letter-spacing: 0.05em;
+    }
 
-    /* District bar — slim, same width as cards below */
+    /* ── Content Section ─────────────────────────────── */
+    .content-section {
+      position: relative; z-index: 5;
+      padding: 0 48px 56px;
+      background: var(--bg);
+    }
+
+    /* ── District Bar ────────────────────────────────── */
     .district-bar {
-      display: flex; gap: 8px; flex-wrap: wrap;
-      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 8px;
+      padding: 22px 0 26px;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.6s 0.5s ease forwards;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
     .district-pill {
-      padding: 6px 16px;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 18px;
       border-radius: 50px;
-      border: 1.5px solid rgba(26,63,111,0.2);
-      background: rgba(255,255,255,0.45);
-      backdrop-filter: blur(10px);
+      border: 1.5px solid rgba(13,45,82,0.15);
+      background: rgba(255,255,255,0.55);
       color: var(--muted);
-      font-size: 12px; font-weight: 500;
-      cursor: pointer;
-      user-select: none;
-      transition: background var(--ease), color var(--ease), border-color var(--ease), transform var(--spring), box-shadow var(--spring);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 500;
+      cursor: pointer; user-select: none;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease, transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
     }
-    .district-pill .zh { font-size: 10px; color: inherit; margin-left: 4px; opacity: 0.7; }
+    .district-pill .cn { font-size: 11px; opacity: 0.65; }
     .district-pill.active {
       background: var(--accent); color: #fff;
       border-color: var(--accent);
-      box-shadow: 0 4px 14px rgba(26,63,111,0.22);
+      box-shadow: 0 4px 18px rgba(13,45,82,0.25);
+    }
+    .district-pill:hover:not(.active) {
+      background: rgba(13,45,82,0.07); color: var(--accent); transform: scale(1.05);
     }
 
-    /* 3 filter cards */
-    .filter-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
+    /* ── Section headers ─────────────────────────────── */
+    .section-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 20px;
     }
+    .section-number {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--accent);
+      color: #fff; font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .section-header h2 {
+      font-size: 18px; margin-bottom: 0;
+    }
+
+    /* ── Grid layouts ────────────────────────────────── */
+    .filters-row {
+      display: grid;
+      gap: 20px;
+      margin-bottom: 20px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards;
+    }
+    .filters-row:nth-child(1) { animation-delay: 0.6s; grid-template-columns: repeat(3, 1fr); }
+    .filters-row:nth-child(2) { animation-delay: 0.7s; grid-template-columns: repeat(3, 1fr); }
+    .filters-row:nth-child(3) { animation-delay: 0.8s; grid-template-columns: repeat(2, 1fr); }
 
     .filter-card {
-      padding: 26px 22px;
-      display: flex; flex-direction: column; gap: 20px;
-      position: relative;
-    }
-    .filter-card h2 {
-      font-size: 18px; margin-bottom: 0;
-      display: flex; align-items: center; gap: 10px;
-    }
-    .filter-card h2 svg { color: var(--muted); flex-shrink: 0; }
-
-    .filter-field { display: flex; flex-direction: column; gap: 8px; }
-    .filter-row-label {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 13px; font-weight: 500; color: var(--text);
-    }
-    .filter-row-label svg { color: var(--muted); }
-
-    .pill-group { display: flex; gap: 6px; flex-wrap: wrap; }
-
-    .elevator-row {
-      display: flex; align-items: center; justify-content: space-between;
+      padding: 26px 24px;
+      display: flex; flex-direction: column; gap: 18px;
+      position: relative; overflow: hidden;
     }
 
-    /* Bottom CTA */
-    .cta-bottom {
-      margin-top: 28px; text-align: center;
+    /* ── Input groups ────────────────────────────────── */
+    .filter-group { display: flex; flex-direction: column; gap: 7px; }
+    .pill-group { display: flex; gap: 7px; flex-wrap: wrap; }
+
+    /* Input with unit badge */
+    .input-with-unit {
+      position: relative; display: flex; align-items: center;
     }
-    .cta-bottom .btn-primary { min-width: 320px; }
+    .input-with-unit input {
+      padding-right: 52px;
+    }
+    .unit-badge {
+      position: absolute; right: 12px;
+      font-size: 11px; font-weight: 700;
+      color: var(--muted); letter-spacing: 0.06em;
+      pointer-events: none;
+    }
+
+    /* Number stepper */
+    .stepper {
+      display: flex; align-items: center; gap: 0;
+      border: 1.5px solid rgba(13,45,82,0.15);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      background: rgba(255,255,255,0.6);
+    }
+    .stepper-btn {
+      width: 36px; height: 38px;
+      border: none; background: none;
+      color: var(--accent); font-size: 18px;
+      cursor: pointer; font-weight: 300;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s ease;
+      flex-shrink: 0;
+    }
+    .stepper-btn:hover { background: rgba(13,45,82,0.08); }
+    .stepper-input {
+      flex: 1; text-align: center;
+      border: none; border-left: 1.5px solid rgba(13,45,82,0.1);
+      border-right: 1.5px solid rgba(13,45,82,0.1);
+      background: transparent;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px; font-weight: 600; color: var(--text);
+      padding: 8px 0;
+      -moz-appearance: textfield;
+    }
+    .stepper-input::-webkit-outer-spin-button,
+    .stepper-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .stepper-input:focus { outline: none; }
+
+    /* Range with live value */
+    .range-wrap { position: relative; padding-bottom: 20px; }
+    .range-value {
+      position: absolute; bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px; font-weight: 700;
+      color: var(--accent); letter-spacing: 0.04em;
+    }
+
+    /* Two column inside a card */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* ── CTA ─────────────────────────────────────────── */
+    .cta-center {
+      display: flex; justify-content: center; margin-top: 12px;
+      opacity: 0; animation: fadeUp 0.6s 0.9s ease forwards;
+    }
+    .cta-center .btn-primary {
+      padding: 18px 60px; font-size: 16px;
+      letter-spacing: 0.06em;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+    }
+
+    /* ── Floating field-focus glow ───────────────────── */
+    input[type="text"]:focus, input[type="number"]:focus,
+    select:focus, textarea:focus {
+      border-color: var(--accent2);
+      box-shadow: 0 0 0 3px rgba(46,125,224,0.13);
+      background: rgba(255,255,255,0.95);
+    }
+
+    /* Pill animation on select */
+    .pill-btn {
+      transition: background 0.18s ease, color 0.18s ease,
+                  border-color 0.18s ease,
+                  transform 0.3s cubic-bezier(0.34,1.56,0.64,1),
+                  box-shadow 0.2s ease;
+    }
+    .pill-btn.active {
+      animation: pillPop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes pillPop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
+
+    /* Card entrance stagger */
+    .filter-card {
+      opacity: 0;
+      animation: cardIn 0.5s ease forwards;
+    }
+    .filters-row:nth-child(1) .filter-card:nth-child(1) { animation-delay: 0.65s; }
+    .filters-row:nth-child(1) .filter-card:nth-child(2) { animation-delay: 0.72s; }
+    .filters-row:nth-child(1) .filter-card:nth-child(3) { animation-delay: 0.79s; }
+    .filters-row:nth-child(2) .filter-card:nth-child(1) { animation-delay: 0.75s; }
+    .filters-row:nth-child(2) .filter-card:nth-child(2) { animation-delay: 0.82s; }
+    .filters-row:nth-child(2) .filter-card:nth-child(3) { animation-delay: 0.89s; }
+    .filters-row:nth-child(3) .filter-card:nth-child(1) { animation-delay: 0.85s; }
+    .filters-row:nth-child(3) .filter-card:nth-child(2) { animation-delay: 0.92s; }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Deco accent line on cards */
+    .filter-card::before {
+      content: '';
+      position: absolute; top: 0; left: 24px; right: 24px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(46,125,224,0.25), transparent);
+      border-radius: 2px;
+    }
   </style>
 </head>
-<body>
-
-<div class="page-bg"></div>
+<body class="forecast-page">
 
 <!-- NAV -->
 <nav>
@@ -119,7 +334,11 @@
     </svg>
     <span>Hangzhou</span>
   </a>
-  <div class="nav-center"></div>
+  <div class="nav-center">
+    <a href="forecast.html" data-page="forecast.html">Price Forecast</a>
+    <a href="index.html"    data-page="index.html">Dashboard</a>
+    <a href="contact.html"  data-page="contact.html">Contact Us</a>
+  </div>
   <div class="nav-right">
     <a href="index.html" class="nav-icon-btn" title="Profile">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -128,7 +347,9 @@
     </a>
     <button class="nav-icon-btn" id="menuBtn" title="Menu">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
       </svg>
     </button>
   </div>
@@ -138,276 +359,464 @@
 <div class="drawer-backdrop" id="drawerBackdrop"></div>
 <div class="drawer" id="drawer">
   <button class="drawer-close" id="drawerClose">✕</button>
-  <a href="forecast.html" data-page="forecast.html">🏠 Home</a>
-  <a href="contact.html" data-page="contact.html">✉️ Contact Us</a>
+  <a href="forecast.html" data-page="forecast.html">🏠 Price Forecast</a>
+  <a href="index.html"    data-page="index.html">👤 Dashboard</a>
+  <a href="contact.html"  data-page="contact.html">✉️ Contact Us</a>
 </div>
 
 <!-- PAGE -->
-<main class="page">
-  <div class="forecast-page">
+<div class="page forecast-page">
 
-    <!-- Price result top-right -->
-    <div class="top-row">
-      <div class="card result-box">
-        <div class="result-label">Price Forecast Result</div>
-        <div class="result-price" id="priceDisplay">
-          <span class="currency">¥</span> <span id="priceVal">3,850,000</span>
-        </div>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-img"></div>
+
+    <!-- Price Result -->
+    <div class="price-result">
+      <div class="price-label">Price Forecast Result</div>
+      <div class="price-value">
+        <span class="currency">¥</span><span id="priceDisplay">3,850,000</span>
       </div>
+      <div class="price-change">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
+        Est. +4.2% YoY
+      </div>
+      <div class="price-per-sqm" id="pricePerSqm">≈ ¥38,500 / m²</div>
+      <div class="confidence-bar">
+        <div class="confidence-fill" id="confidenceFill"></div>
+      </div>
+      <div class="confidence-label" id="confidenceLabel">Model confidence: 82%</div>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <section class="content-section">
+
+    <!-- District selector -->
+    <div class="district-bar">
+      <div class="district-pill active" onclick="selectDistrict(this)" data-key="Xihu">Xihu <span class="cn">西湖</span></div>
+      <div class="district-pill" onclick="selectDistrict(this)" data-key="Gongshu">Gongshu <span class="cn">拱墅</span></div>
+      <div class="district-pill" onclick="selectDistrict(this)" data-key="Shangcheng">Shangcheng <span class="cn">上城</span></div>
+      <div class="district-pill" onclick="selectDistrict(this)" data-key="Binjiang">Binjiang <span class="cn">滨江</span></div>
+      <div class="district-pill" onclick="selectDistrict(this)" data-key="Xiaoshan">Xiaoshan <span class="cn">萧山</span></div>
+      <div class="district-pill" onclick="selectDistrict(this)" data-key="Yuhang">Yuhang <span class="cn">余杭</span></div>
     </div>
 
-    <!-- District bar -->
-    <div class="district-bar" id="districtBar">
-      <div class="district-pill active" onclick="selectDistrict(this)">Xihu <span class="zh">(西湖)</span></div>
-      <div class="district-pill" onclick="selectDistrict(this)">Gongshu <span class="zh">(拱墅)</span></div>
-      <div class="district-pill" onclick="selectDistrict(this)">Shangcheng <span class="zh">(上城)</span></div>
-      <div class="district-pill" onclick="selectDistrict(this)">Binjiang <span class="zh">(滨江)</span></div>
-      <div class="district-pill" onclick="selectDistrict(this)">Xiaoshan <span class="zh">(萧山)</span></div>
-      <div class="district-pill" onclick="selectDistrict(this)">Yuhang <span class="zh">(余杭)</span></div>
-    </div>
+    <!-- ROW 1: Property Basics / Room Config / Building Info -->
+    <div class="filters-row">
 
-    <!-- 3 Filter Cards -->
-    <div class="filter-grid">
-
-      <!-- Card 1: Area & Location -->
+      <!-- Card 1: Property Basics -->
       <div class="card filter-card">
-        <h2>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-          Area &amp; Location
-        </h2>
+        <div class="section-header">
+          <div class="section-number">1</div>
+          <h2>Property Basics</h2>
+        </div>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M12 6v12M6 12h12"/></svg>
-            Subway Line
-          </div>
-          <div class="pill-group" id="subwayLines">
-            <div class="pill-btn active" onclick="togglePill(this,'subwayLines')">Line 1</div>
-            <div class="pill-btn" onclick="togglePill(this,'subwayLines')">Line 2</div>
-            <div class="pill-btn" onclick="togglePill(this,'subwayLines')">Line 3</div>
+        <!-- area_sqm -->
+        <div class="filter-group">
+          <label class="field-label">Floor Area</label>
+          <div class="input-with-unit">
+            <input type="number" id="area_sqm" value="90" min="1" step="1" placeholder="e.g. 90" oninput="updatePrice()" />
+            <span class="unit-badge">m²</span>
           </div>
         </div>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg>
-            Subway Distance
+        <!-- property_type -->
+        <div class="filter-group">
+          <label class="field-label">Property Type</label>
+          <div class="pill-group">
+            <button class="pill-btn active" onclick="togglePill(this,'property_type')">Apartment</button>
+            <button class="pill-btn" onclick="togglePill(this,'property_type')">House</button>
+            <button class="pill-btn" onclick="togglePill(this,'property_type')">Villa</button>
           </div>
-          <input type="range" min="100" max="3000" value="1200" id="subwaySlider" oninput="updatePrice()" />
         </div>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 10v6M2 10l10-7 10 7"/><path d="M6 10v8h12v-8"/></svg>
-            School Distance
+        <!-- orientation -->
+        <div class="filter-group">
+          <label class="field-label">Orientation</label>
+          <div class="pill-group">
+            <button class="pill-btn active" onclick="togglePill(this,'orientation')">South</button>
+            <button class="pill-btn" onclick="togglePill(this,'orientation')">North</button>
+            <button class="pill-btn" onclick="togglePill(this,'orientation')">East</button>
+            <button class="pill-btn" onclick="togglePill(this,'orientation')">West</button>
           </div>
-          <select onchange="updatePrice()">
-            <option>Distance-band</option>
-            <option>30 years</option>
-            <option>10 years</option>
-            <option>&lt;5 min walk</option>
-          </select>
         </div>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-            Neighborhood Amenities
+        <!-- decoration -->
+        <div class="filter-group">
+          <label class="field-label">Decoration</label>
+          <div class="pill-group">
+            <button class="pill-btn active" onclick="togglePill(this,'decoration')">Standard</button>
+            <button class="pill-btn" onclick="togglePill(this,'decoration')">Luxury</button>
+            <button class="pill-btn" onclick="togglePill(this,'decoration')">Simple</button>
           </div>
-          <select onchange="updatePrice()">
-            <option>Proximity to parks, Hospitals, Shopping</option>
-            <option>Parks only</option>
-            <option>Hospitals only</option>
-            <option>All amenities</option>
+        </div>
+      </div>
+
+      <!-- Card 2: Room Configuration -->
+      <div class="card filter-card">
+        <div class="section-header">
+          <div class="section-number">2</div>
+          <h2>Room Configuration</h2>
+        </div>
+
+        <!-- bedrooms -->
+        <div class="filter-group">
+          <label class="field-label">Bedrooms</label>
+          <div class="stepper">
+            <button class="stepper-btn" onclick="stepperChange('bedrooms',-1)">−</button>
+            <input class="stepper-input" type="number" id="bedrooms" value="2" min="1" max="10" oninput="updatePrice()" />
+            <button class="stepper-btn" onclick="stepperChange('bedrooms',1)">+</button>
+          </div>
+        </div>
+
+        <!-- living_rooms -->
+        <div class="filter-group">
+          <label class="field-label">Living Rooms</label>
+          <div class="stepper">
+            <button class="stepper-btn" onclick="stepperChange('living_rooms',-1)">−</button>
+            <input class="stepper-input" type="number" id="living_rooms" value="1" min="0" max="5" oninput="updatePrice()" />
+            <button class="stepper-btn" onclick="stepperChange('living_rooms',1)">+</button>
+          </div>
+        </div>
+
+        <!-- bathrooms -->
+        <div class="filter-group">
+          <label class="field-label">Bathrooms</label>
+          <div class="stepper">
+            <button class="stepper-btn" onclick="stepperChange('bathrooms',-1)">−</button>
+            <input class="stepper-input" type="number" id="bathrooms" value="1" min="1" max="6" oninput="updatePrice()" />
+            <button class="stepper-btn" onclick="stepperChange('bathrooms',1)">+</button>
+          </div>
+        </div>
+
+        <!-- developer -->
+        <div class="filter-group">
+          <label class="field-label">Developer</label>
+          <select id="developer" onchange="updatePrice()">
+            <option value="Vanke">Vanke 万科</option>
+            <option value="Country Garden">Country Garden 碧桂园</option>
+            <option value="Evergrande">Evergrande 恒大</option>
+            <option value="Longfor">Longfor 龙湖</option>
+            <option value="CIFI">CIFI 旭辉</option>
+            <option value="Greenland">Greenland 绿地</option>
+            <option value="Other">Other / Unknown</option>
           </select>
         </div>
       </div>
 
-      <!-- Card 2: House Details -->
+      <!-- Card 3: Building Info -->
       <div class="card filter-card">
-        <h2>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
-          House Details
-        </h2>
-
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 21h18M6 21V7l6-4 6 4v14"/></svg>
-            Floor
-          </div>
-          <div class="pill-group" id="floorGroup">
-            <div class="pill-btn" onclick="togglePill(this,'floorGroup')">Low</div>
-            <div class="pill-btn active" onclick="togglePill(this,'floorGroup')">Medium</div>
-            <div class="pill-btn" onclick="togglePill(this,'floorGroup')">High</div>
-          </div>
+        <div class="section-header">
+          <div class="section-number">3</div>
+          <h2>Building Info</h2>
         </div>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg>
-            Age
-          </div>
-          <div class="pill-group" id="ageGroup">
-            <div class="pill-btn active" onclick="togglePill(this,'ageGroup')">New</div>
-            <div class="pill-btn" onclick="togglePill(this,'ageGroup')">&lt;10 years</div>
-            <div class="pill-btn" onclick="togglePill(this,'ageGroup')">10-20 years</div>
-          </div>
-        </div>
-
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2l3 7h7l-6 4 2 7-6-4-6 4 2-7-6-4h7z"/></svg>
-            Decoration
-          </div>
-          <div class="pill-group" id="decoGroup">
-            <div class="pill-btn active" onclick="togglePill(this,'decoGroup')">Standard</div>
-            <div class="pill-btn" onclick="togglePill(this,'decoGroup')">Luxury</div>
-            <div class="pill-btn" onclick="togglePill(this,'decoGroup')">Simple</div>
-          </div>
-        </div>
-
-        <div class="filter-field">
-          <div class="elevator-row">
-            <div class="filter-row-label">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M9 10l3-3 3 3M9 14l3 3 3-3"/></svg>
-              Has Elevator
+        <!-- floor / total_floors -->
+        <div class="filter-group">
+          <label class="field-label">Floor</label>
+          <div class="two-col">
+            <div>
+              <label class="field-label" style="font-size:10px">Current Floor</label>
+              <div class="stepper">
+                <button class="stepper-btn" onclick="stepperChange('floor',-1)">−</button>
+                <input class="stepper-input" type="number" id="floor" value="8" min="1" max="60" oninput="updatePrice()" />
+                <button class="stepper-btn" onclick="stepperChange('floor',1)">+</button>
+              </div>
             </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="elevatorToggle" onchange="updatePrice()" />
-              <span class="toggle-slider"></span>
-            </label>
+            <div>
+              <label class="field-label" style="font-size:10px">Total Floors</label>
+              <div class="stepper">
+                <button class="stepper-btn" onclick="stepperChange('total_floors',-1)">−</button>
+                <input class="stepper-input" type="number" id="total_floors" value="18" min="1" max="60" oninput="updatePrice()" />
+                <button class="stepper-btn" onclick="stepperChange('total_floors',1)">+</button>
+              </div>
+            </div>
+          </div>
+          <div id="floorPositionLabel" style="font-size:11px;color:var(--muted);margin-top:4px;">Mid floor (44%)</div>
+        </div>
+
+        <!-- building_age_years -->
+        <div class="filter-group">
+          <label class="field-label">Building Age</label>
+          <div class="range-wrap">
+            <input type="range" id="building_age_years" min="0" max="40" value="5" oninput="updatePrice(); updateRangeLabel('building_age_years','ageLabel',v=>v==0?'New':v+' yrs')" />
+            <span class="range-value" id="ageLabel">5 yrs</span>
+          </div>
+        </div>
+
+        <!-- has_elevator -->
+        <div class="filter-group">
+          <label class="field-label">Elevator</label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="has_elevator" checked onchange="updatePrice()" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </div><!-- /row 1 -->
+
+    <!-- ROW 2: Location & Transit / School & Community / Costs -->
+    <div class="filters-row">
+
+      <!-- Card 4: Subway & Transit -->
+      <div class="card filter-card">
+        <div class="section-header">
+          <div class="section-number">4</div>
+          <h2>Subway & Transit</h2>
+        </div>
+
+        <!-- subway_line -->
+        <div class="filter-group">
+          <label class="field-label">Subway Line</label>
+          <div class="pill-group">
+            <button class="pill-btn active" onclick="togglePill(this,'subway_line')">Line 1</button>
+            <button class="pill-btn" onclick="togglePill(this,'subway_line')">Line 2</button>
+            <button class="pill-btn" onclick="togglePill(this,'subway_line')">Line 3</button>
+            <button class="pill-btn" onclick="togglePill(this,'subway_line')">Line 4</button>
+            <button class="pill-btn" onclick="togglePill(this,'subway_line')">Line 5</button>
+            <button class="pill-btn" onclick="togglePill(this,'subway_line')">None</button>
+          </div>
+        </div>
+
+        <!-- subway_distance_m -->
+        <div class="filter-group">
+          <label class="field-label">Distance to Subway Station</label>
+          <div class="range-wrap">
+            <input type="range" id="subway_distance_m" min="0" max="3000" step="50" value="500"
+                   oninput="updatePrice(); updateRangeLabel('subway_distance_m','subwayLabel',v=>v==0?'Direct access':v+'m')" />
+            <span class="range-value" id="subwayLabel">500m</span>
           </div>
         </div>
       </div>
 
-      <!-- Card 3: Property Specifics -->
+      <!-- Card 5: School & Community -->
       <div class="card filter-card">
-        <h2>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-8h6v8"/></svg>
-          Property Specifics
-        </h2>
+        <div class="section-header">
+          <div class="section-number">5</div>
+          <h2>School & Community</h2>
+        </div>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-            Property Type
-          </div>
-          <div class="pill-group" id="propTypeGroup">
-            <div class="pill-btn active" onclick="togglePill(this,'propTypeGroup')">Apartment</div>
-            <div class="pill-btn" onclick="togglePill(this,'propTypeGroup')">House</div>
-            <div class="pill-btn" onclick="togglePill(this,'propTypeGroup')">Villa</div>
+        <!-- school_district_tier -->
+        <div class="filter-group">
+          <label class="field-label">School District Tier</label>
+          <div class="pill-group">
+            <button class="pill-btn active" onclick="togglePill(this,'school_district_tier')">Tier 1</button>
+            <button class="pill-btn" onclick="togglePill(this,'school_district_tier')">Tier 2</button>
+            <button class="pill-btn" onclick="togglePill(this,'school_district_tier')">Tier 3</button>
+            <button class="pill-btn" onclick="togglePill(this,'school_district_tier')">None</button>
           </div>
         </div>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 11h20M2 11V7a2 2 0 012-2h16a2 2 0 012 2v4M2 11v4h20v-4M7 15v4M17 15v4"/></svg>
-            Room Type
-          </div>
-          <div class="pill-group" id="roomGroup">
-            <div class="pill-btn" onclick="togglePill(this,'roomGroup')">1-Bed</div>
-            <div class="pill-btn active" onclick="togglePill(this,'roomGroup')">2-Bed</div>
-            <div class="pill-btn" onclick="togglePill(this,'roomGroup')">3-Bed</div>
+        <!-- parking_ratio -->
+        <div class="filter-group">
+          <label class="field-label">Parking Ratio (spaces / unit)</label>
+          <div class="range-wrap">
+            <input type="range" id="parking_ratio" min="0" max="3" step="0.1" value="1.0"
+                   oninput="updatePrice(); updateRangeLabel('parking_ratio','parkLabel',v=>parseFloat(v).toFixed(1))" />
+            <span class="range-value" id="parkLabel">1.0</span>
           </div>
         </div>
+      </div>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 12H2v7h20v-7h-2"/><path d="M6 12V5a6 6 0 0112 0v7"/></svg>
-            Bathrooms
-          </div>
-          <div class="pill-group" id="bathGroup">
-            <div class="pill-btn" onclick="togglePill(this,'bathGroup')">1</div>
-            <div class="pill-btn active" onclick="togglePill(this,'bathGroup')">2</div>
-            <div class="pill-btn" onclick="togglePill(this,'bathGroup')">3</div>
-            <div class="pill-btn" onclick="togglePill(this,'bathGroup')">etc</div>
-          </div>
+      <!-- Card 6: Costs & Fees -->
+      <div class="card filter-card">
+        <div class="section-header">
+          <div class="section-number">6</div>
+          <h2>Costs & Fees</h2>
         </div>
 
-        <div class="filter-field">
-          <div class="filter-row-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="9" width="22" height="12" rx="2"/><path d="M7 9V5a3 3 0 016 0v4"/></svg>
-            Parking Rate
+        <!-- management_fee_yuan_per_sqm -->
+        <div class="filter-group">
+          <label class="field-label">Management Fee</label>
+          <div class="input-with-unit">
+            <input type="number" id="management_fee" value="3.5" min="0" step="0.5" placeholder="e.g. 3.5" oninput="updatePrice()" />
+            <span class="unit-badge">¥/m²</span>
           </div>
-          <select onchange="updatePrice()">
-            <option>Per Month &lt; Fee range</option>
-            <option>Per Month ¥800–1,200</option>
-            <option>Per Month ¥1,200–2,000</option>
-            <option>Included in price</option>
+          <span style="font-size:11px;color:var(--muted);margin-top:3px;">Per month per m²</span>
+        </div>
+
+        <!-- parking fee (derived info) -->
+        <div class="filter-group">
+          <label class="field-label">Parking Fee Range</label>
+          <select id="parking_fee" onchange="updatePrice()">
+            <option value="0">Free / Included</option>
+            <option value="300">¥200 – 400 / month</option>
+            <option value="500" selected>¥400 – 600 / month</option>
+            <option value="700">Over ¥600 / month</option>
           </select>
         </div>
       </div>
-
-    </div>
+    </div><!-- /row 2 -->
 
     <!-- CTA -->
-    <div class="cta-bottom">
-      <a href="index.html" class="btn-primary">Find Matching Listings</a>
+    <div class="cta-center">
+      <a href="index.html" class="btn-primary" onclick="runForecast(event)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Run Forecast &amp; Find Listings
+      </a>
     </div>
 
-  </div>
-</main>
+  </section>
+</div><!-- /page -->
 
 <script src="nav.js"></script>
 <script>
-  /* ── District selector ──────────────────────────── */
-  function selectDistrict(el) {
+  /* ── Data ──────────────────────────────────────────── */
+  const basePrices = {
+    Xihu: 4200000, Gongshu: 3400000, Shangcheng: 3850000,
+    Binjiang: 3600000, Xiaoshan: 2800000, Yuhang: 2600000
+  };
+
+  const orientationMods = { South: 1.04, East: 1.01, West: 0.99, North: 0.97 };
+  const decorationMods  = { Standard: 1.0, Luxury: 1.12, Simple: 0.93 };
+  const propertyMods    = { Apartment: 1.0, House: 1.05, Villa: 1.22 };
+  const schoolMods      = { 'Tier 1': 1.15, 'Tier 2': 1.06, 'Tier 3': 1.0, None: 0.94 };
+  const subwayLineMods  = { 'Line 1': 1.06, 'Line 2': 1.04, 'Line 3': 1.03, 'Line 4': 1.02, 'Line 5': 1.01, None: 0.97 };
+  const developerMods   = { Vanke:1.05, Longfor:1.04, 'Country Garden':1.0, CIFI:1.02, Evergrande:0.97, Greenland:1.01, Other:0.98 };
+
+  /* ── State ─────────────────────────────────────────── */
+  const state = {
+    district:     'Xihu',
+    orientation:  'South',
+    decoration:   'Standard',
+    property_type:'Apartment',
+    subway_line:  'Line 1',
+    school_district_tier: 'Tier 1',
+  };
+
+  /* ── Pill toggle ───────────────────────────────────── */
+  function togglePill(btn, group) {
+    btn.closest('.pill-group').querySelectorAll('.pill-btn')
+       .forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state[group] = btn.textContent.trim();
+    updatePrice();
+  }
+
+  /* ── District ──────────────────────────────────────── */
+  function selectDistrict(pill) {
     document.querySelectorAll('.district-pill').forEach(p => p.classList.remove('active'));
-    el.classList.add('active');
+    pill.classList.add('active');
+    state.district = pill.dataset.key;
     updatePrice();
   }
 
-  /* ── Pill toggle (single-select per group) ───────── */
-  function togglePill(el, groupId) {
-    const group = document.getElementById(groupId);
-    if (group) {
-      group.querySelectorAll('.pill-btn').forEach(p => p.classList.remove('active'));
-    }
-    el.classList.add('active');
+  /* ── Steppers ──────────────────────────────────────── */
+  function stepperChange(id, delta) {
+    const el = document.getElementById(id);
+    const newVal = Math.max(parseInt(el.min)||0, Math.min(parseInt(el.max)||99, (parseInt(el.value)||0) + delta));
+    el.value = newVal;
     updatePrice();
   }
 
-  /* ── Simple price calculation (demo) ────────────── */
-  const BASE = 3850000;
-  function updatePrice() {
-    let delta = 0;
-
-    // District factor
-    const districtEl = document.querySelector('.district-pill.active');
-    if (districtEl) {
-      const d = districtEl.textContent.trim();
-      const map = { Xihu: 0, Gongshu: -150000, Shangcheng: 80000, Binjiang: -50000, Xiaoshan: -200000, Yuhang: -180000 };
-      const key = Object.keys(map).find(k => d.startsWith(k));
-      if (key) delta += map[key];
-    }
-
-    // Property type
-    const pt = document.querySelector('#propTypeGroup .pill-btn.active');
-    if (pt) {
-      if (pt.textContent === 'Villa')     delta += 2000000;
-      if (pt.textContent === 'House')     delta += 500000;
-    }
-
-    // Room type
-    const rt = document.querySelector('#roomGroup .pill-btn.active');
-    if (rt) {
-      if (rt.textContent === '1-Bed')  delta -= 400000;
-      if (rt.textContent === '3-Bed')  delta += 600000;
-    }
-
-    // Decoration
-    const dc = document.querySelector('#decoGroup .pill-btn.active');
-    if (dc) {
-      if (dc.textContent === 'Luxury')   delta += 300000;
-      if (dc.textContent === 'Simple')   delta -= 150000;
-    }
-
-    // Elevator
-    if (document.getElementById('elevatorToggle').checked) delta += 80000;
-
-    const price = Math.max(500000, BASE + delta);
-    document.getElementById('priceVal').textContent = price.toLocaleString();
+  /* ── Range labels ──────────────────────────────────── */
+  function updateRangeLabel(inputId, labelId, formatter) {
+    const v = document.getElementById(inputId).value;
+    document.getElementById(labelId).textContent = formatter(v);
   }
+
+  /* ── Floor position label ──────────────────────────── */
+  function updateFloorLabel() {
+    const floor = parseInt(document.getElementById('floor').value) || 1;
+    const total = parseInt(document.getElementById('total_floors').value) || 1;
+    const ratio = floor / total;
+    const pct   = Math.round(ratio * 100);
+    const tier  = ratio < 0.33 ? 'Low' : ratio < 0.67 ? 'Mid' : 'High';
+    document.getElementById('floorPositionLabel').textContent = `${tier} floor (${pct}%)`;
+  }
+
+  /* ── Price engine ──────────────────────────────────── */
+  async function updatePrice() {
+  // 1. Gather data from the UI
+  const activeDistrict = document.querySelector('.district-pill.active').textContent.trim().replace(/[\u4e00-\u9fa5]/g,'').trim();
+  const roomPill = document.querySelector('.filter-card:nth-child(3) .filter-group:nth-child(3) .pill-btn.active');
+  const floorPill = document.querySelector('.filter-card:nth-child(2) .filter-group:nth-child(2) .pill-btn.active');
+  const elevatorToggle = document.querySelector('input[type="checkbox"]').checked;
+  
+  // Format the payload to match your backend schemas.py (HouseInput)
+  const payload = {
+    district: activeDistrict,
+    rooms: roomPill ? parseInt(roomPill.textContent) : 2,
+    floor_level: floorPill ? floorPill.textContent : "Medium",
+    has_elevator: elevatorToggle,
+    // Add other mapped variables here as required by your schema...
+  };
+
+  try {
+    // 2. Send data to the ML backend
+    const response = await fetch('http://127.0.0.1:8000/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      // Assuming predicted_price_wan returns price in 10,000s
+      const actualPrice = data.predicted_price_wan * 10000; 
+      document.getElementById('priceDisplay').textContent = actualPrice.toLocaleString('en-US');
+    } else {
+      console.error("Prediction failed");
+    }
+  } catch (error) {
+    console.error("Error connecting to backend:", error);
+  }
+}
+
+  /* ── Animated number ───────────────────────────────── */
+  let animFrame, currentDisplayed = 3850000;
+  function animatePrice(target) {
+    if (animFrame) cancelAnimationFrame(animFrame);
+    const start = currentDisplayed;
+    const duration = 420;
+    const t0 = performance.now();
+    function tick(now) {
+      const progress = Math.min((now - t0) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const val = Math.round(start + (target - start) * eased);
+      document.getElementById('priceDisplay').textContent = val.toLocaleString('en-US');
+      if (progress < 1) animFrame = requestAnimationFrame(tick);
+      else currentDisplayed = target;
+    }
+    animFrame = requestAnimationFrame(tick);
+  }
+
+  /* ── CTA ───────────────────────────────────────────── */
+  function runForecast(e) {
+    // Collect all values for backend
+    const payload = {
+      district: state.district,
+      area_sqm: parseFloat(document.getElementById('area_sqm').value),
+      bedrooms: parseInt(document.getElementById('bedrooms').value),
+      living_rooms: parseInt(document.getElementById('living_rooms').value),
+      bathrooms: parseInt(document.getElementById('bathrooms').value),
+      floor: parseInt(document.getElementById('floor').value),
+      total_floors: parseInt(document.getElementById('total_floors').value),
+      has_elevator: document.getElementById('has_elevator').checked ? 1 : 0,
+      building_age_years: parseInt(document.getElementById('building_age_years').value),
+      orientation: state.orientation,
+      decoration: state.decoration,
+      property_type: state.property_type,
+      developer: document.getElementById('developer').value,
+      subway_line: state.subway_line,
+      subway_distance_m: parseFloat(document.getElementById('subway_distance_m').value),
+      school_district_tier: state.school_district_tier,
+      parking_ratio: parseFloat(document.getElementById('parking_ratio').value),
+      management_fee_yuan_per_sqm: parseFloat(document.getElementById('management_fee').value),
+    };
+    console.log('Forecast payload:', JSON.stringify(payload, null, 2));
+    // → send to your API: fetch('/api/forecast', { method:'POST', body: JSON.stringify(payload) })
+  }
+
+  /* ── Init ──────────────────────────────────────────── */
+  document.addEventListener('DOMContentLoaded', () => {
+    updatePrice();
+    // trigger confidence bar animation after page load
+    setTimeout(() => {
+      document.getElementById('confidenceFill').style.width = '82%';
+    }, 800);
+  });
 </script>
 </body>
 </html>
