@@ -7,7 +7,7 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-MODEL_PATH = Path("xgb_pipeline_v2.pkl")
+MODEL_PATH = Path("../ml/XGmodel.pkl")
 MODEL_VERSION = "v2.0.0"
 
 NUMERIC_FEATURES = [
@@ -31,6 +31,21 @@ DISTRICT_ENRICHMENT: dict[str, dict[str, float]] = {
     "Yuhang":     {"west_lake_distance_m": 22000.0, "green_ratio": 0.22},
 }
 
+# Fallback values used when an optional field is omitted by the caller.
+# Numeric defaults are rough Hangzhou-market medians; categorical defaults
+# are a neutral "Unknown" bucket the pipeline's encoder should recognize.
+OPTIONAL_DEFAULTS: dict[str, object] = {
+    "living_rooms": 1,
+    "orientation": "Unknown",
+    "property_type": "Unknown",
+    "developer": "Unknown",
+    "subway_line": "Unknown",
+    "subway_distance_m": 9999.0,
+    "school_district_tier": "Unknown",
+    "parking_ratio": 1.0,
+    "management_fee_yuan_per_sqm": 3.0,
+}
+
 
 class HousePredictor:
     def __init__(self) -> None:
@@ -50,11 +65,17 @@ class HousePredictor:
         payload["green_ratio"] = enrichment["green_ratio"]
         return payload
 
+    def _fill_optional_defaults(self, payload: dict) -> dict:
+        for field, default_value in OPTIONAL_DEFAULTS.items():
+            if payload.get(field) is None:
+                payload[field] = default_value
+        return payload
+
     def predict(self, payload: dict) -> tuple[float, float]:
         logger.info("Incoming request payload: %s", payload)
 
+        payload = self._fill_optional_defaults(payload)
         payload = self._enrich(payload)
-        payload["subway_distance_m"] = payload.get("subway_distance_m") or 9999
 
         df = pd.DataFrame([payload])[NUMERIC_FEATURES + CATEGORICAL_FEATURES]
 
