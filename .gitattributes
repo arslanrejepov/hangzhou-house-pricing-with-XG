@@ -1,0 +1,8 @@
+# Exclude frontend files from GitHub's "Languages" stats bar,
+# so the repo reads as Python/Jupyter Notebook only.
+# Files remain fully visible and browsable — this only affects language detection.
+
+frontend/*.html linguist-vendored
+frontend/*.css linguist-vendored
+frontend/*.js linguist-vendored
+frontend/assets/* linguist-vendored
