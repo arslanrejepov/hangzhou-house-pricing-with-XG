@@ -242,9 +242,9 @@ Predictions produced by this application are **statistical estimates based on hi
 **Rejebov Arslan**
 Aspiring AI/ML Engineer, focused on turning machine learning models into real, usable products.
 
-- GitHub: [@your-username](https://github.com/arslanrejepov)
-- LinkedIn: [your-linkedin](https://linkedin.com/in/arslan-rejepov)
-- Portfolio: [your-portfolio-site](https://arslanrejepov.github.io/)
+- GitHub: [arslanrejepov](https://github.com/arslanrejepov)
+- LinkedIn: [arslan-rejepov](https://linkedin.com/in/arslan-rejepov)
+- Portfolio: [Arslan Rejebov CV](https://arslanrejepov.github.io/)
 
 ## 🤖 Development Notes
 
