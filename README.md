@@ -16,7 +16,7 @@
 ## 🎥 DEMO
 
 <p align="center">
-  <img src="app_demo.gif" alt="House Price Prediction Demo" width="100">
+  <img src="app_demo.gif" alt="House Price Prediction Demo" width="200">
 </p>
 
 ---
