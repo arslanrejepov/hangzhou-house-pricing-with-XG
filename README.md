@@ -16,7 +16,7 @@
 ## 🎥 DEMO
 
 <p align="center">
-  <img src="app_demo.gif" alt="House Price Prediction Demo" width="400">
+  <img src="app_demo.gif" alt="House Price Prediction Demo" width="100">
 </p>
 
 ---
@@ -203,13 +203,6 @@ Then visit `http://localhost:5500/forecast.html` in your browser.
 
 Fill in the required fields (district, area, bedrooms, bathrooms, floor, total floors, elevator, building age, decoration) plus a listed price, and submit. The app will return a fair value estimate and a verdict.
 
----
-
-## 🎥 DEMO
-
-<p align="center">
-  <img src="app_demo.gif" alt="House Price Prediction Demo" width="800">
-</p>
 
 ---
 
