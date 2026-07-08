@@ -13,6 +13,14 @@
 
 ---
 
+## 🎥 DEMO
+
+<p align="center">
+  <img src="app_demo.gif" alt="House Price Prediction Demo" width="400">
+</p>
+
+---
+
 ## 📖 Project Overview
 
 **Hangzhou AVM** (Automated Valuation Model) predicts the fair market price of an apartment in Hangzhou based on its physical characteristics, location, and building attributes. A user pastes in a listing's details along with its asking price, and the application returns:
