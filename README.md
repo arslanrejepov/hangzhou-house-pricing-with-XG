@@ -197,13 +197,11 @@ Fill in the required fields (district, area, bedrooms, bathrooms, floor, total f
 
 ---
 
-## 🖼️ Screenshots
+## 🎥 DEMO
 
-> _Add screenshots or a short GIF walkthrough here._
-
-| Landing / Form | Prediction Result |
-|---|---|
-| `docs/screenshot-form.png` | `docs/screenshot-result.png` |
+<p align="center">
+  <img src="app_demo.gif" alt="House Price Prediction Demo" width="800">
+</p>
 
 ---
 
@@ -212,9 +210,6 @@ Fill in the required fields (district, area, bedrooms, bathrooms, floor, total f
 - 🔍 Auto-inferring optional features (e.g. subway distance, school tier) from an address lookup instead of manual selection
 - 📈 Model monitoring — tracking prediction drift as new listings come in
 - 🗃️ A proper database layer for storing prediction history and user feedback
-- 🧮 Confidence intervals or prediction ranges instead of a single point estimate
-- 🌐 Deployment to a public cloud host with CI/CD
-- 🧾 Batch prediction support (upload a CSV of listings, get all estimates at once)
 - 🈶 Localized UI (Simplified Chinese) alongside English
 
 ---
